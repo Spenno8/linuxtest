@@ -4,6 +4,7 @@ import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { Link, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../store/authstore"
 
 export default function Login() {
     const [email, setEmail] = useState("")
@@ -11,6 +12,7 @@ export default function Login() {
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate();
+    const login = useAuthStore((state) => state.login)
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
@@ -31,7 +33,11 @@ export default function Login() {
             }
 
             const data = await res.json()
-            localStorage.setItem("token", data.token)
+            //localStorage.setItem("token", data.token)
+            login(
+                { email: data.email ?? email },
+                data.token
+            )
 
             alert("Login successful")
             navigate("/", { replace: true });
