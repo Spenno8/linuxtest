@@ -1,14 +1,16 @@
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
+import { Button } from "../components/ui/button"
+import { Input } from "../components/ui/input"
+import { Label } from "../components/ui/label"
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
+    const navigate = useNavigate();
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
@@ -32,7 +34,10 @@ export default function Login() {
             localStorage.setItem("token", data.token)
 
             alert("Login successful")
+            navigate("/", { replace: true });
+
         } catch (err) {
+            console.error(err)
             setError("Invalid email or password")
         } finally {
             setLoading(false)
@@ -79,6 +84,12 @@ export default function Login() {
                         </Button>
                     </form>
                 </CardContent>
+                <ul>
+                    <li>
+                        <Link to="/">Use Signed Out</Link>
+                    </li>
+                </ul>
+
             </Card>
         </div>
     )
