@@ -1,2 +1,3 @@
 my-go-app
-reacttest/.env
+frontend/.env
+database/.env

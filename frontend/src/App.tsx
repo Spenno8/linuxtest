@@ -10,6 +10,7 @@ import {
 } from "react-router-dom";
 import Home from "./pages/Home"
 import Login from "./pages/Login"
+import Signup from "./pages/Signup"
 import Map from "./pages/Map"
 
 //import { Button } from "@/components/ui/button"
@@ -29,6 +30,10 @@ function App() {
           <Route
             path="/Login"
             element={<Login />}
+          />
+          <Route
+            path="/Signup"
+            element={<Signup />}
           />
           <Route
             path="/Map"

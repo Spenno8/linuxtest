@@ -62,7 +62,7 @@ function App() {
                 {/* 4. Display the message from the Go backend */}
                 <div className="card mb-4 p-4 border rounded shadow-sm bg-white">
                     <p>Go Backend Status: **{goMessage}**</p>
-                    <p>Hello, {user?.email ? (user?.email) : (<>Guest</>)}</p>
+                    <p>Hello, {user?.username ? (user?.username) : (<>Guest</>)}</p>
                 </div>
 
                 {/* 5. Keep the existing counter functionality */}
@@ -90,8 +90,11 @@ function App() {
                         {
                             <li>
                                 <Button> <Link to="/Login">Login</Link> </Button>
+                                <Button> <Link to="/Signup">Sign up</Link> </Button>
                             </li>
+
                         }
+
                     </ul>)}
 
             </div>

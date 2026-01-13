@@ -4,6 +4,7 @@ import { persist } from "zustand/middleware"
 // User has a specific email
 type User = {
   email: string
+  username: string
 }
 
 // User that has passed login has their token saved and is Authenticated
