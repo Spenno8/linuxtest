@@ -30,6 +30,8 @@ func SetupRouter() *gin.Engine {
 		api.POST("/UserMapPins", controllers.UserMapPins)
 		api.POST("/NewUserPin", controllers.NewUserPin)
 		api.POST("/DeleteUserPin", controllers.DeleteUserPin)
+		api.POST("/UpdateUserPin", controllers.UpdateUserPin)
+
 	}
 
 	return r

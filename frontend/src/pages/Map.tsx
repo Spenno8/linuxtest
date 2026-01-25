@@ -14,8 +14,22 @@ type Location = {
     description: string;
     lat: number;
     lng: number;
+    isSaved?: boolean;
 };
 
+type BackendPin = {
+    UUID: string;
+    id: string;
+    pintitle: string;
+    pindesc: string;
+    pincolor: string;
+    pinlat: string;
+    pinlong: string;
+};
+
+type PinsResponse = {
+    "Pin ID": BackendPin[];
+};
 
 
 function MapPage() {
@@ -31,23 +45,91 @@ function MapPage() {
     const [isAddingPin, setIsAddingPin] = useState(false);
 
     const [locations, setLocations] = useState<Location[]>([
-        {
-            id: '1',
-            name: 'Melbourne CBD',
-            description: 'Central business district',
-            lat: -37.8142176,
-            lng: 144.9631608,
-        },
-        {
-            id: '2',
-            name: 'South Location',
-            description: 'South of the city',
-            lat: -38.8142176,
-            lng: 144.9631608,
-        },
+
     ]);
 
+    /* ---------------- Database---------------- */
+    useEffect(() => {
+        const fetchPins = async () => {
+            try {
+                const res = await fetch('http://localhost:8080/api/UserMapPins', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        UserID: '18eea458-8222-455b-a8c2-fb0bede324c3', // replace with logged-in user UUID
+                    }),
+                });
 
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+
+                const data = await res.json();
+                const typedData = data as PinsResponse;
+
+                const mapped: Location[] = typedData["Pin ID"].map((pin) => ({
+
+                    id: pin.id,
+                    name: pin.pintitle,
+                    description: pin.pindesc,
+                    lat: parseFloat(pin.pinlat),
+                    lng: parseFloat(pin.pinlong),
+                    isSaved: true,
+                }));
+
+                setLocations(mapped);
+            } catch (err) {
+                console.error('Failed to fetch pins:', err);
+            }
+        };
+
+        fetchPins();
+    }, []);
+
+    /*---------------------------------------*/
+    const savePin = async (location: Location) => {
+        const endpoint = location.isSaved
+            ? 'http://localhost:8080/api/UpdateUserPin'
+            : 'http://localhost:8080/api/NewUserPin';
+
+        const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: location.id,
+                userId: '18eea458-8222-455b-a8c2-fb0bede324c3',
+                pintitle: location.name,
+                pindesc: location.description,
+                pincolor: 'red',
+                pinlat: location.lat.toString(),
+                pinlong: location.lng.toString(),
+            }),
+        });
+
+        if (!res.ok) {
+            throw new Error('Failed to save pin');
+        }
+
+        const data = await res.json();
+        const saved = data["Pin ID"];
+
+        setLocations((prev) =>
+            prev.map((loc) =>
+                loc.id === location.id
+                    ? {
+                        ...loc,
+                        id: saved.id,   // replace temp id
+                        isSaved: true,  // now persisted
+                    }
+                    : loc
+            )
+        );
+    };
+
+
+    /* -------------- Pop Up ---------------- */
     const createPopup = (location: Location) => {
         const container = document.createElement('div');
 
@@ -75,7 +157,7 @@ function MapPage() {
         return new mapboxgl.Popup({ offset: 25 }).setDOMContent(container);
     };
 
-
+    /* -------------- MAP LOAD ---------------- */
     useEffect(() => {
         mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -92,16 +174,6 @@ function MapPage() {
 
         map.on('load', () => {
             map.resize();
-
-            // Initial markers
-            locations.forEach((location) => {
-                const marker = new mapboxgl.Marker()
-                    .setLngLat([location.lng, location.lat])
-                    .setPopup(createPopup(location))
-                    .addTo(map);
-
-                markersRef.current.set(location.id, marker);
-            });
         });
 
         map.on('move', () => {
@@ -116,6 +188,27 @@ function MapPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    /* -------------- Save Markers ---------------- */
+    useEffect(() => {
+        if (!mapRef.current) return;
+
+        const map = mapRef.current;
+
+        // clear existing markers
+        markersRef.current.forEach(marker => marker.remove());
+        markersRef.current.clear();
+
+        // add markers from state
+        locations.forEach(location => {
+            const marker = new mapboxgl.Marker()
+                .setLngLat([location.lng, location.lat])
+                .setPopup(createPopup(location))
+                .addTo(map);
+
+            markersRef.current.set(location.id, marker);
+        });
+    }, [locations]);
+
     /* ---------------- CLICK ---------------- */
     useEffect(() => {
         if (!mapRef.current) return;
@@ -123,10 +216,7 @@ function MapPage() {
         const map = mapRef.current;
 
         const handleClick = (e: mapboxgl.MapMouseEvent) => {
-            if (!isAddingPin) {
-                setSelectedLocation(null);
-                return;
-            }
+            if (!isAddingPin) return;
 
             const { lng, lat } = e.lngLat;
 
@@ -136,16 +226,10 @@ function MapPage() {
                 description: 'Click edit to update',
                 lat,
                 lng,
+                isSaved: false,
             };
 
             setLocations((prev) => [...prev, newLocation]);
-
-            const marker = new mapboxgl.Marker()
-                .setLngLat([lng, lat])
-                .setPopup(createPopup(newLocation))
-                .addTo(map);
-
-            markersRef.current.set(newLocation.id, marker);
 
             setSelectedLocation(newLocation);
             setIsAddingPin(false);
@@ -166,6 +250,12 @@ function MapPage() {
         mapRef.current.getCanvas().style.cursor =
             isAddingPin ? 'crosshair' : '';
     }, [isAddingPin]);
+
+    /*--------------------------------------*/
+
+
+
+
 
     /* ---------------- WEBPAGE RENDERING ---------------- */
     return (
@@ -221,22 +311,16 @@ function MapPage() {
 
                         <div className="flex gap-2">
                             <Button
-                                onClick={() => {
-                                    setLocations((prev) =>
-                                        prev.map((loc) =>
-                                            loc.id === selectedLocation.id
-                                                ? { ...selectedLocation } // ensure new object
-                                                : loc
-                                        )
-                                    );
+                                onClick={async () => {
+                                    if (!selectedLocation) return;
 
-                                    const marker = markersRef.current.get(selectedLocation.id);
-                                    if (marker) {
-                                        marker.setPopup(createPopup({ ...selectedLocation }));
-                                        marker.getPopup()?.remove(); // close popup
+                                    try {
+                                        await savePin(selectedLocation);
+                                        setSelectedLocation(null);
+                                    } catch (err) {
+                                        console.error(err);
+                                        alert('Failed to save pin');
                                     }
-
-                                    setSelectedLocation(null);
                                 }}
                             >
                                 Save
