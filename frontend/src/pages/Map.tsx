@@ -3,20 +3,24 @@ import mapboxgl, { Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 import { Button } from '../components/ui/button';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthStore } from '../store/authstore'
 
 const INITIAL_CENTER: [number, number] = [144.9631608, -37.8142176]
 const INITIAL_ZOOM = 10.12
 
+// This is for Pins created and changed on the front end
 type Location = {
     id: string;
     name: string;
     description: string;
+    colour: string;
     lat: number;
     lng: number;
     isSaved?: boolean;
 };
 
+// This is for the Pins retrieved from the db
 type BackendPin = {
     UUID: string;
     id: string;
@@ -32,10 +36,18 @@ type PinsResponse = {
 };
 
 
+
 function MapPage() {
+
+    const navigate = useNavigate()
+
+    const { isAuthenticated, user, token } = useAuthStore()
+
     const mapRef = useRef<MapboxMap | null>(null);
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     //const navigate = useNavigate();
+    //const token = localStorage.getItem('token');
+    //const user = localStorage.getItem('user');
 
     const [center, setCenter] = useState<[number, number]>(INITIAL_CENTER);
     const [zoom, setZoom] = useState<number>(INITIAL_ZOOM);
@@ -48,48 +60,62 @@ function MapPage() {
 
     ]);
 
+    /* ------------- No Auth Kick ---------------- */
+    useEffect(() => {
+        if (!isAuthenticated) {
+            navigate('/login')
+        }
+    }, [isAuthenticated, navigate])
+
+
     /* ---------------- Database---------------- */
     useEffect(() => {
+        if (!isAuthenticated || !user || !token) return;
+
         const fetchPins = async () => {
             try {
+                const body = { userid: user.id }; // backend expects lowercase 'userid'
+                console.log("Fetching pins with body:", body);
+
                 const res = await fetch('http://localhost:8080/api/UserMapPins', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
                     },
-                    body: JSON.stringify({
-                        UserID: '18eea458-8222-455b-a8c2-fb0bede324c3', // replace with logged-in user UUID
-                    }),
+                    body: JSON.stringify(body),
                 });
+                console.log("User ID:", user.id);
 
                 if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}`);
+                    throw new Error(`Failed to fetch pins: HTTP ${res.status}`);
                 }
 
-                const data = await res.json();
-                const typedData = data as PinsResponse;
+                const data: PinsResponse = await res.json();
 
-                const mapped: Location[] = typedData["Pin ID"].map((pin) => ({
-
+                // map backend response to front-end Location type
+                const mapped: Location[] = data["Pin ID"].map((pin) => ({
                     id: pin.id,
                     name: pin.pintitle,
                     description: pin.pindesc,
                     lat: parseFloat(pin.pinlat),
                     lng: parseFloat(pin.pinlong),
+                    colour: pin.pincolor,
                     isSaved: true,
                 }));
 
                 setLocations(mapped);
             } catch (err) {
-                console.error('Failed to fetch pins:', err);
+                console.error('Error fetching pins:', err);
             }
         };
 
         fetchPins();
-    }, []);
+    }, [isAuthenticated, user, token]);
 
-    /*---------------------------------------*/
+    /*------------------- Save Pin --------------------*/
     const savePin = async (location: Location) => {
+        if (!user || !token) return
         const endpoint = location.isSaved
             ? 'http://localhost:8080/api/UpdateUserPin'
             : 'http://localhost:8080/api/NewUserPin';
@@ -99,10 +125,10 @@ function MapPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 id: location.id,
-                userId: '18eea458-8222-455b-a8c2-fb0bede324c3',
+                userid: user.id,
                 pintitle: location.name,
                 pindesc: location.description,
-                pincolor: 'red',
+                pincolor: location.colour,
                 pinlat: location.lat.toString(),
                 pinlong: location.lng.toString(),
             }),
@@ -128,6 +154,27 @@ function MapPage() {
         );
     };
 
+    /* -------------------- Delete Pin -----------------------*/
+    const deletePin = async (location: Location) => {
+        if (!user || !token) return
+        const res = await fetch('http://localhost:8080/api/DeleteUserPin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: user.id,
+                pin_id: location.id,
+            }),
+        });
+
+        if (!res.ok) {
+            throw new Error('Failed to delete pin');
+        }
+
+        // remove from state → marker disappears automatically
+        setLocations((prev) =>
+            prev.filter((loc) => loc.id !== location.id)
+        );
+    };
 
     /* -------------- Pop Up ---------------- */
     const createPopup = (location: Location) => {
@@ -159,34 +206,35 @@ function MapPage() {
 
     /* -------------- MAP LOAD ---------------- */
     useEffect(() => {
-        mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+        if (!isAuthenticated || !mapContainerRef.current) return
+        if (mapRef.current) return // prevent double init
 
-        if (!mapContainerRef.current) return;
+        mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
 
         const map = new mapboxgl.Map({
             container: mapContainerRef.current,
             style: 'mapbox://styles/mapbox/streets-v12',
             center: INITIAL_CENTER,
             zoom: INITIAL_ZOOM,
-        });
+        })
 
-        mapRef.current = map;
+        mapRef.current = map
 
         map.on('load', () => {
-            map.resize();
-        });
+            map.resize()
+        })
 
         map.on('move', () => {
-            const c = map.getCenter();
-            setCenter([c.lng, c.lat]);
-            setZoom(map.getZoom());
-        });
+            const c = map.getCenter()
+            setCenter([c.lng, c.lat])
+            setZoom(map.getZoom())
+        })
 
         return () => {
-            map.remove();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+            map.remove()
+            mapRef.current = null
+        }
+    }, [isAuthenticated])
 
     /* -------------- Save Markers ---------------- */
     useEffect(() => {
@@ -200,7 +248,9 @@ function MapPage() {
 
         // add markers from state
         locations.forEach(location => {
-            const marker = new mapboxgl.Marker()
+            const marker = new mapboxgl.Marker({
+                color: location.colour || 'red', // fallback
+            })
                 .setLngLat([location.lng, location.lat])
                 .setPopup(createPopup(location))
                 .addTo(map);
@@ -224,6 +274,7 @@ function MapPage() {
                 id: crypto.randomUUID(),
                 name: 'New Location',
                 description: 'Click edit to update',
+                colour: 'blue',
                 lat,
                 lng,
                 isSaved: false,
@@ -298,6 +349,19 @@ function MapPage() {
                         />
 
                         <label className="block text-sm mb-1">Description</label>
+
+                        <label className="block text-sm mb-1">Pin Colour</label>
+                        <input
+                            type="color"
+                            className="w-full h-10 mb-4 cursor-pointer"
+                            value={selectedLocation.colour}
+                            onChange={(e) =>
+                                setSelectedLocation({
+                                    ...selectedLocation,
+                                    colour: e.target.value,
+                                })
+                            }
+                        />
                         <textarea
                             className="w-full border p-2 mb-4"
                             value={selectedLocation.description}
@@ -308,11 +372,43 @@ function MapPage() {
                                 })
                             }
                         />
+                        <Button
+                            variant="destructive"
+                            className="absolute bottom-4 right-4"
+                            onClick={async () => {
+                                if (!selectedLocation) return;
+
+                                const confirmed = window.confirm(
+                                    'Are you sure you want to delete this pin?'
+                                );
+                                if (!confirmed) return;
+
+                                try {
+                                    await deletePin(selectedLocation);
+                                    setSelectedLocation(null);
+                                } catch (err) {
+                                    console.error(err);
+                                    alert('Failed to delete pin');
+                                }
+                            }}
+                        >
+                            Delete
+                        </Button>
+
 
                         <div className="flex gap-2">
                             <Button
                                 onClick={async () => {
                                     if (!selectedLocation) return;
+
+                                    // update local state immediately
+                                    setLocations((prev) =>
+                                        prev.map((loc) =>
+                                            loc.id === selectedLocation.id
+                                                ? selectedLocation
+                                                : loc
+                                        )
+                                    );
 
                                     try {
                                         await savePin(selectedLocation);

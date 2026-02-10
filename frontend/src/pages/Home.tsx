@@ -35,6 +35,8 @@ function App() {
                 setGoMessage("Failed to connect to the Go backend.");
             });
     }, []);
+
+
     // ----------------------------------------------------
     return (
         <div className="flex items-center justify-center h-screen">
@@ -76,6 +78,7 @@ function App() {
                     <p className="mt-2 text-sm text-gray-500">
                         Edit <code>src/App.tsx</code> and save to test HMR
                     </p>
+                    <Button> <Link to="/Map">Map</Link> </Button>
                 </div>
                 <p className="read-the-docs text-sm text-gray-500">
                     Click on the Vite and React logos to learn more

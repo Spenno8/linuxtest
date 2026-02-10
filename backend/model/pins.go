@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+// MapPin represents a user-created pin on the map.
 type MapPin struct {
 	ID       string `json:"id"`
 	UserID   string `json:"userId"`
@@ -16,10 +17,12 @@ type MapPin struct {
 	Pinlong  string `json:"pinlong"`
 }
 
+// GetUserMapPins fetches all map pins for a given user.
+// Returns a slice of MapPin objects.
 func GetUserMapPins(UserID string) ([]MapPin, error) {
 	fmt.Println("QUERYING FOR MAP PINS - USER:", UserID)
-	//var column string
 
+	// Query the database for pins belonging to the given user
 	rows, err := config.DB.Query(context.Background(),
 		"SELECT id, user_id, title, description, color, latitude, longitude FROM user_map_points WHERE user_id = $1", UserID)
 
@@ -56,6 +59,8 @@ func GetUserMapPins(UserID string) ([]MapPin, error) {
 	return pins, nil
 }
 
+// NewUserPinDB inserts a new map pin into the database for the given user.
+// Returns the newly created MapPin with its ID populated.
 func NewUserPinDB(UUID, Pintitle, Pindesc, Pincolor, Pinlat, Pinlong string) (*MapPin, error) {
 	var u MapPin
 	row := config.DB.QueryRow(context.Background(),
@@ -71,6 +76,9 @@ func NewUserPinDB(UUID, Pintitle, Pindesc, Pincolor, Pinlat, Pinlong string) (*M
 	return &u, nil
 }
 
+// UpdateUserPinDB updates the details of an existing pin.
+// Only the owner of the pin (UserID) can update it.
+// Returns the updated MapPin.
 func UpdateUserPinDB(
 	PinID, UserID, Pintitle, Pindesc, Pincolor, Pinlat, Pinlong string,
 ) (*MapPin, error) {
@@ -114,6 +122,9 @@ func UpdateUserPinDB(
 	return &u, nil
 }
 
+// DeletedUserMapPin removes a pin from the database.
+// Only the owner of the pin (UserID) can delete it.
+// Returns the deleted MapPin as confirmation.
 func DeletedUserMapPin(UserID, PinID string) (*MapPin, error) {
 	var u MapPin
 	row := config.DB.QueryRow(context.Background(),

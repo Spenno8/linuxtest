@@ -35,7 +35,7 @@ export default function Login() {
             const data = await res.json()
             //localStorage.setItem("token", data.token)
             login(
-                { email: data.email ?? email, username: data.username },
+                { id: data.id, email: data.email ?? email, username: data.username },
                 data.token
             )
 

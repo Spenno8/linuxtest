@@ -11,6 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// Sign up data field expected to be recieved from the client
 type SignupRequest struct {
 	Email     string `json:"email"`
 	Username  string `json:"username"`
@@ -19,102 +20,67 @@ type SignupRequest struct {
 	Password  string `json:"password"`
 }
 
+// Signup handles user registration requests.
+// It validates input, checks for duplicate credentials,
+// securely hashes the password, stores the user,
+// and returns a JWT for authentication.
 func Signup(c *gin.Context) {
 	var req SignupRequest
+
+	// Parse and validate incoming JSON request body
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "BE: Invalid request"})
 		return
 	}
 
+	// Check if the email already exists in the database
+	// GetUserByCred returns nil error if the record exists
 	user, err := model.GetUserByCred("email", req.Email)
-	if err == nil {
+	if err == nil { //No error will return if it exists therefore email in use
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Email already in use"})
 		return
 	}
 
+	// Same logic as email for username
 	user, err = model.GetUserByCred("username", req.Username)
 	if err == nil {
 		c.JSON(http.StatusConflict, gin.H{"error": "Username already in use"})
 		return
 	}
 
+	// Hash the user's password before storing it
+	// This ensures the plain-text password is never saved
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "BE: Password hash error"})
 		return
 	}
 
+	// Create a new user record in the database
 	user, err = model.SignupNewUser(req.Email, req.Username, hashedPassword, req.Firstname, req.Lastname)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "BE: Database error"})
 		return
 	}
 
+	// Create a JWT token containing the user's email
+	// Token expires after 24 hours
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email": user.Email,
 		"exp":   time.Now().Add(24 * time.Hour).Unix(),
 	})
 
+	// Sign the token using the server's secret key
 	tokenString, err := token.SignedString(config.JwtSecret)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "BE: Token generation failed"})
 		return
 	}
 
+	// Return the JWT and basic user details to the client
 	c.JSON(http.StatusOK, gin.H{
 		"token":    tokenString,
 		"username": user.Username,
 		"email":    user.Email,
 	})
 }
-
-// func Signup(c *gin.Context) {
-// 	var req SignupRequest
-// 	if err := c.ShouldBindJSON(&req); err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-// 		return
-// 	}
-
-// 	fmt.Println("LOGIN ATTEMPT")
-// 	fmt.Println("Email:", req.Email)
-// 	fmt.Println("Username:", req.Username)
-// 	fmt.Println("Firstname:", req.Firstname)
-// 	fmt.Println("Lastname:", req.Lastname)
-// 	fmt.Println("Password:", req.Password)
-
-// 	user, err := model.GetUserByEmail(req.Email, req.Email)
-// 	if err == nil {
-// 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Username or Email in use"})
-// 		return
-// 	}
-
-// 	hashedpassword, err := utils.HashPassword(req.Password)
-// 	if err != nil {
-// 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Password Hash Error"})
-// 		return
-// 	}
-
-// 	user, err := model.SignupNewUser(req.Email, req.Username, hashedpassword, req.Firstname, req.Lastname)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database Error"})
-// 		return
-// 	}
-
-// 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-// 		"email": req.Email,
-// 		"exp":   time.Now().Add(24 * time.Hour).Unix(),
-// 	})
-
-// 	tokenString, err := token.SignedString(config.JwtSecret)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Token generation failed"})
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"token":    tokenString,
-// 		"username": req.Username,
-// 		"email":    req.Email,
-// 	})
-
-// }

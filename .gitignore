@@ -1,3 +1,4 @@
 my-go-app
 frontend/.env
+backend/.env
 database/.env
