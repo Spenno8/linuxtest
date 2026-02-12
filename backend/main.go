@@ -1,23 +1,23 @@
 package main
 
 import (
-	//"fmt"
-	//"log"
+	"os"
+
 	"backend/config"
 	"backend/routes"
-	//"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
-	r := routes.SetupRouter() // Returns *gin.Engine
-	config.InitDB()           // Initialize DB connection
-	r.Run(":8080")
+	config.InitDB() // Initialize DB connection
 
-	// password := "passworduser3"
-	// hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println(string(hash))
+	r := routes.SetupRouter() // Returns *gin.Engine
+
+	// Get port from Azure (or fallback locally)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	r.Run(":" + port)
 
 }
