@@ -22,7 +22,7 @@ function App() {
     }
     // 3. Add data fetching logic with useEffect
     useEffect(() => {
-        fetch('${import.meta.env.VITE_URL}/api/hello')
+        fetch(`${import.meta.env.VITE_URL}/api/hello`)
             .then(async (response) => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
