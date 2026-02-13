@@ -20,10 +20,10 @@ func SetupRouter() *gin.Engine {
 	// running on http://localhost:5173
 	r.Use(cors.New(cors.Config{
 
-		AllowOrigins:  []string{"http://localhost:5173"},                   // Frontend development server
-		AllowMethods:  []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, // Allowed HTTP methods for cross-origin requests
-		AllowHeaders:  []string{"Origin", "Content-Type", "Authorization"}, // Allowed request headers from the client
-		ExposeHeaders: []string{"Content-Length"},                          // Headers exposed to the client
+		AllowOrigins:  []string{"http://localhost:5173", "https://orange-desert-096e96800.1.azurestaticapps.net/"}, // Frontend development server
+		AllowMethods:  []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},                                         // Allowed HTTP methods for cross-origin requests
+		AllowHeaders:  []string{"Origin", "Content-Type", "Authorization"},                                         // Allowed request headers from the client
+		ExposeHeaders: []string{"Content-Length"},                                                                  // Headers exposed to the client
 	}))
 
 	// Group all API routes under the /api prefix
