@@ -76,7 +76,6 @@ function App() {
                         count is {count}
                     </Button>
                     <p className="mt-2 text-sm text-gray-500">
-                        Edit <code>src/App.tsx</code> and save to test HMR
                     </p>
                     <Button> <Link to="/Map">Map</Link> </Button>
                 </div>
