@@ -15,6 +15,7 @@ function App() {
     const user = useAuthStore((s) => s.user)
     const navigate = useNavigate()
 
+    console.log("API URL:", import.meta.env.VITE_URL);
 
     function handleLogout() {
         logout()
