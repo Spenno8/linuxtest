@@ -15,6 +15,7 @@ function App() {
     const user = useAuthStore((s) => s.user)
     const navigate = useNavigate()
 
+    console.log("API URL:", import.meta.env.VITE_URL);
 
     function handleLogout() {
         logout()
@@ -22,7 +23,7 @@ function App() {
     }
     // 3. Add data fetching logic with useEffect
     useEffect(() => {
-        fetch('http://localhost:8080/api/hello')
+        fetch(`${import.meta.env.VITE_URL}/api/hello`)
             .then(async (response) => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -35,6 +36,8 @@ function App() {
                 setGoMessage("Failed to connect to the Go backend.");
             });
     }, []);
+
+
     // ----------------------------------------------------
     return (
         <div className="flex items-center justify-center h-screen">
@@ -62,7 +65,7 @@ function App() {
                 {/* 4. Display the message from the Go backend */}
                 <div className="card mb-4 p-4 border rounded shadow-sm bg-white">
                     <p>Go Backend Status: **{goMessage}**</p>
-                    <p>Hello, {user?.email ? (user?.email) : (<>Guest</>)}</p>
+                    <p>Hello, {user?.username ? (user?.username) : (<>Guest</>)}</p>
                 </div>
 
                 {/* 5. Keep the existing counter functionality */}
@@ -74,8 +77,8 @@ function App() {
                         count is {count}
                     </Button>
                     <p className="mt-2 text-sm text-gray-500">
-                        Edit <code>src/App.tsx</code> and save to test HMR
                     </p>
+                    <Button> <Link to="/Map">Map</Link> </Button>
                 </div>
                 <p className="read-the-docs text-sm text-gray-500">
                     Click on the Vite and React logos to learn more
@@ -90,8 +93,11 @@ function App() {
                         {
                             <li>
                                 <Button> <Link to="/Login">Login</Link> </Button>
+                                <Button> <Link to="/Signup">Sign up</Link> </Button>
                             </li>
+
                         }
+
                     </ul>)}
 
             </div>

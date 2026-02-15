@@ -1,2 +1,9 @@
 my-go-app
-reacttest/.env
+backend/.env
+database/.env
+database/clean_dump.sql
+.gitignore
+database/dump.sql
+frontend/.env
+.env
+.env.*
