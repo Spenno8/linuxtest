@@ -1,8 +1,6 @@
-my-go-app
 backend/.env
 database/.env
 database/clean_dump.sql
-.gitignore
 database/dump.sql
 frontend/.env
 .env

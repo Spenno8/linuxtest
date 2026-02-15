@@ -27,6 +27,7 @@ export default function Signup() {
 
         try {
             const res = await fetch(`${import.meta.env.VITE_URL}/api/signup`, {
+
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

@@ -1,11 +1,10 @@
 package config
 
 import (
-	"log"
-	"os"
-
 	"context"
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -15,18 +14,11 @@ import (
 var DB *pgxpool.Pool
 
 // JwtSecret is the secret key used to sign and verify JWT tokens.
-// In production, this should be loaded from an environment variable
-// and never hard-coded.
-// This will be changed
-var JwtSecret = []byte("super-secret-key")
+// In production, load this from an environment variable (never hard-code).
+var JwtSecret = []byte("super-secret-key") // TODO: replace with env var
 
 // InitDB initializes the PostgreSQL connection pool.
-// It should be called once at application startup.
-// The pool is reused for all database operations.
 func InitDB() {
-
-	// Data Source Name (DSN) containing database connection details
-	// This will be changed
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=require",
 		os.Getenv("DB_HOST"),
@@ -36,25 +28,16 @@ func InitDB() {
 		os.Getenv("DB_PORT"),
 	)
 
-	// Create a new connection pool using the provided DSN
 	pool, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {
-		// Fatal exit if the database cannot be reached
 		log.Fatal("Unable to create connection pool:", err)
 	}
 
-	// Ping DB
+	// Ping DB to confirm connection works
 	if err := pool.Ping(context.Background()); err != nil {
 		log.Fatal("Unable to connect to DB:", err)
 	}
-	// Assign the pool to the global DB variable
-	DB = pool
 
-	// Confirm successful database connection
+	DB = pool
 	fmt.Println("Database connected!")
 }
-
-// Debug: Docker command reminders
-//docker compose down
-//docker compose stop
-//docker compose up -d
