@@ -77,7 +77,7 @@ function MapPage() {
                 const body = { userid: user.id }; // backend expects lowercase 'userid'
                 console.log("Fetching pins with body:", body);
 
-                const res = await fetch('http://localhost:8080/api/UserMapPins', {
+                const res = await fetch(`${import.meta.env.VITE_URL}/api/UserMapPins`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -117,8 +117,8 @@ function MapPage() {
     const savePin = async (location: Location) => {
         if (!user || !token) return
         const endpoint = location.isSaved
-            ? 'http://localhost:8080/api/UpdateUserPin'
-            : 'http://localhost:8080/api/NewUserPin';
+            ? `${import.meta.env.VITE_URL}/api/UpdateUserPin`
+            : `${import.meta.env.VITE_URL}/api/NewUserPin`;
 
         const res = await fetch(endpoint, {
             method: 'POST',
@@ -157,7 +157,7 @@ function MapPage() {
     /* -------------------- Delete Pin -----------------------*/
     const deletePin = async (location: Location) => {
         if (!user || !token) return
-        const res = await fetch('http://localhost:8080/api/DeleteUserPin', {
+        const res = await fetch(`${import.meta.env.VITE_URL}/api/DeleteUserPin`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -209,7 +209,7 @@ function MapPage() {
         if (!isAuthenticated || !mapContainerRef.current) return
         if (mapRef.current) return // prevent double init
 
-        mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
+        mapboxgl.accessToken = `${import.meta.env.VITE_MAPBOX_TOKEN}`
 
         const map = new mapboxgl.Map({
             container: mapContainerRef.current,

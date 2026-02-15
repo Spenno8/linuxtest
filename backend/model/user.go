@@ -68,7 +68,7 @@ func SignupNewUser(email, username, password, firstname, lastname string) (*User
 		username, email, firstname, lastname, password)
 
 	// Scan returned values into User struct
-	err := row.Scan(&u.ID, &u.Email, &u.Password)
+	err := row.Scan(&u.ID, &u.Email, &u.Username)
 	if err != nil {
 		fmt.Println("DB ERROR:", err)
 		return nil, err
