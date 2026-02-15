@@ -209,7 +209,12 @@ function MapPage() {
         if (!isAuthenticated || !mapContainerRef.current) return
         if (mapRef.current) return // prevent double init
 
-        mapboxgl.accessToken = `${import.meta.env.VITE_MAPBOX_TOKEN}`
+        const token = import.meta.env.VITE_MAPBOX_TOKEN;
+        if (!token) {
+            console.error("Missing VITE_MAPBOX_TOKEN");
+        }
+        mapboxgl.accessToken = token;
+
 
         const map = new mapboxgl.Map({
             container: mapContainerRef.current,
