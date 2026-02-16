@@ -9,7 +9,6 @@ import { useAuthStore } from "../store/authstore"
 
 
 function App() {
-    const [count, setCount] = useState(0); // Existing counter state
     const [goMessage, setGoMessage] = useState("Loading message from Go backend..."); // 2. New state for backend message
     const logout = useAuthStore((s) => s.logout)
     const user = useAuthStore((s) => s.user)
@@ -45,8 +44,8 @@ function App() {
             {/* Optional: A sub-container to group content together if needed */}
             <div className="text-center">
                 <div>
-                    <h1 className="text-4xl font-bold text-red-400 mb-4">
-                        Tailwind is working!
+                    <h1 className="text-4xl font-bold text-cyan-400 mb-4">
+                        Spencer's Map App
                     </h1>
                     {/* Wrap logos in a flex container to put them side-by-side */}
                     <div className="flex justify-center space-x-6 mb-4">
@@ -61,27 +60,32 @@ function App() {
 
                 <h1 className="text-2xl font-semibold">Vite + React</h1>
                 <h2 className="text-lg text-gray-600 mb-4">Spencer's Learning</h2>
+                <p className=" text-black-600 mb-6">
+                    Hello, {user?.username ? (user?.username) : (<>Guest</>)} welcome to my Map App.
+                    <br /> This is my first solo project that I've developed in order to improve my knowledge,
+                    skills and employability.
+                    <br /> As this is a learning project I cannot gurantee full data protection so please do not use personal information.
+                    <br />Should you find any issues from a security or design perspective I would love the feedback on how I can further improve this application
 
+                </p>
                 {/* 4. Display the message from the Go backend */}
                 <div className="card mb-4 p-4 border rounded shadow-sm bg-white">
+                    <p className="font-bold"> Due to this being a solo project with a limited budget the backend and database will not be active at
+                        all times of the day
+                    </p>
                     <p>Go Backend Status: **{goMessage}**</p>
-                    <p>Hello, {user?.username ? (user?.username) : (<>Guest</>)}</p>
+                    {/*<p>Hello, {user?.username ? (user?.username) : (<>Guest</>)}</p>*/}
                 </div>
 
                 {/* 5. Keep the existing counter functionality */}
                 <div className="card mb-4 p-4 border rounded shadow-sm bg-white">
-                    <Button
-                        onClick={() => setCount((count) => count + 1)}
-                        className="p-2 text-white rounded hover:ring-blue-300 hover:ring-2 transition duration-300 ease-in-out"
-                    >
-                        count is {count}
-                    </Button>
+
                     <p className="mt-2 text-sm text-gray-500">
                     </p>
                     <Button> <Link to="/Map">Map</Link> </Button>
                 </div>
                 <p className="read-the-docs text-sm text-gray-500">
-                    Click on the Vite and React logos to learn more
+                    Click on the Vite and React logos to learn more about them
                 </p>
 
                 {user?.email ? (

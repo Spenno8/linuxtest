@@ -105,7 +105,7 @@ export default function Signup() {
                         )}
 
                         <Button className="w-full" disabled={loading}>
-                            {loading ? "Logging in..." : "Login"}
+                            {loading ? "Signing up..." : "Sign up"}
                         </Button>
                     </form>
                 </CardContent>
