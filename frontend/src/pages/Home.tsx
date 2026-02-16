@@ -39,16 +39,16 @@ function App() {
 
     // ----------------------------------------------------
     return (
-        <div className="flex items-center justify-center h-screen">
+        <div className="min-h-screen flex items-center justify-center  overflow-y-auto px-4 py-2">
 
             {/* Optional: A sub-container to group content together if needed */}
-            <div className="text-center">
+            <div className="text-center max-w-2xl w-full">
                 <div>
-                    <h1 className="text-4xl font-bold text-cyan-400 mb-4">
+                    <h1 className="text-4xl font-bold text-blue-400 mb-2">
                         Spencer's Map App
                     </h1>
                     {/* Wrap logos in a flex container to put them side-by-side */}
-                    <div className="flex justify-center space-x-6 mb-4">
+                    <div className="flex justify-center space-x-4 mb-2">
                         <a href="https://vite.dev" target="_blank" rel="noopener noreferrer">
                             <img src={viteLogo} className="logo w-24" alt="Vite logo" />
                         </a>
@@ -60,12 +60,14 @@ function App() {
 
                 <h1 className="text-2xl font-semibold">Vite + React</h1>
                 <h2 className="text-lg text-gray-600 mb-4">Spencer's Learning</h2>
-                <p className=" text-black-600 mb-6">
+                <p className=" text-black-600">
                     Hello, {user?.username ? (user?.username) : (<>Guest</>)} welcome to my Map App.
                     <br /> This is my first solo project that I've developed in order to improve my knowledge,
                     skills and employability.
                     <br /> As this is a learning project I cannot gurantee full data protection so please do not use personal information.
-                    <br />Should you find any issues from a security or design perspective I would love the feedback on how I can further improve this application
+                </p>
+                <p className=" text-black-600 font-bold">test@test.com test1234 is free to be used if desired.</p>
+                <p className=" text-black-600 mb-6">Should you find any issues from a security or design perspective I would love the feedback on how I can further improve this application
 
                 </p>
                 {/* 4. Display the message from the Go backend */}
